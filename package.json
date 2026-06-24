@@ -1,0 +1,18 @@
+{
+  "name": "policy-in-action-library",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sprint 1 repository setup for the Policy in Action Library React/FastAPI project.",
+  "scripts": {
+    "dev": "docker compose up --build",
+    "compose:config": "docker compose config --quiet",
+    "backend:dev": "uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000",
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:typecheck": "npm --prefix frontend run typecheck",
+    "frontend:build": "npm --prefix frontend run build",
+    "check": "python -m compileall backend && npm --prefix frontend run typecheck && npm --prefix frontend run build && docker compose config --quiet"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
