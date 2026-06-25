@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.app.db.database import get_db
 from backend.app.db.models import Document, Resource
 from backend.app.schemas.resource_schema import DocumentOut, ResourceOut
-from backend.app.api.resources import resource_out
+from backend.app.api.resources import document_out, resource_out
 from backend.app.services.auth_service import require_admin
 from backend.app.services.file_storage import save_upload
 from backend.app.services.ingestion_service import ingest_document
@@ -79,16 +79,7 @@ def document_status(document_id: str, db: Session = Depends(get_db)):
     document = db.get(Document, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    return DocumentOut(
-        id=document.id,
-        resource_id=document.resource_id,
-        original_filename=document.original_filename,
-        mime_type=document.mime_type,
-        file_size=document.file_size,
-        parse_status=document.parse_status,
-        parse_error=document.parse_error,
-        uploaded_at=document.uploaded_at,
-    )
+    return document_out(document)
 
 
 @router.post("/{document_id}/reprocess", response_model=ResourceOut)

@@ -30,6 +30,19 @@ def chunk_out(chunk: Chunk) -> ChunkOut:
     )
 
 
+def document_out(document) -> DocumentOut:
+    return DocumentOut(
+        id=document.id,
+        resource_id=document.resource_id,
+        original_filename=document.original_filename,
+        mime_type=document.mime_type,
+        file_size=document.file_size,
+        parse_status=document.parse_status,
+        parse_error=document.parse_error,
+        uploaded_at=document.uploaded_at,
+    )
+
+
 def resource_list_out(resource: Resource) -> ResourceListOut:
     status = resource.documents[0].parse_status if resource.documents else None
     return ResourceListOut(
@@ -55,22 +68,12 @@ def resource_list_out(resource: Resource) -> ResourceListOut:
 
 
 def resource_out(resource: Resource) -> ResourceOut:
+    ordered_chunks = sorted(resource.chunks, key=lambda item: item.chunk_index)
+    ordered_documents = sorted(resource.documents, key=lambda item: item.uploaded_at, reverse=True)
     return ResourceOut(
         **resource_list_out(resource).model_dump(exclude={"chunk_count", "document_status"}),
-        chunks=[chunk_out(chunk) for chunk in sorted(resource.chunks, key=lambda item: item.chunk_index)],
-        documents=[
-            DocumentOut(
-                id=document.id,
-                resource_id=document.resource_id,
-                original_filename=document.original_filename,
-                mime_type=document.mime_type,
-                file_size=document.file_size,
-                parse_status=document.parse_status,
-                parse_error=document.parse_error,
-                uploaded_at=document.uploaded_at,
-            )
-            for document in resource.documents
-        ],
+        chunks=[chunk_out(chunk) for chunk in ordered_chunks],
+        documents=[document_out(document) for document in ordered_documents],
     )
 
 
