@@ -1,24 +1,12 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
+import { AdminPage } from "./pages/AdminPage";
 import "./styles.css";
 
-function App() {
-  return (
-    <main className="shell">
-      <section className="panel">
-        <p className="eyebrow">Sprint 1 Repository Setup</p>
-        <h1>Policy in Action Library</h1>
-        <p>
-          The repository scaffold is ready for the React frontend, FastAPI backend,
-          PostgreSQL database, and ChromaDB vector store.
-        </p>
-      </section>
-    </main>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <main className="main admin-shell">
+      <AdminPage />
+    </main>
   </React.StrictMode>,
 );
