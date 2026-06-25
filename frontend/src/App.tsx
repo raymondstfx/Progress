@@ -7,6 +7,7 @@ import { AdminPage } from "./pages/AdminPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ResourceDetailPage } from "./pages/ResourceDetailPage";
 
 export default function App() {
   const [path, setPath] = useState(currentPath());
@@ -31,6 +32,8 @@ export default function App() {
         <LibraryPage />
       ) : path === "/admin" && user.role === "admin" ? (
         <AdminPage />
+      ) : path.startsWith("/resources/") ? (
+        <ResourceDetailPage user={user} resourceId={decodeURIComponent(path.replace("/resources/", ""))} />
       ) : (
         <DashboardPage user={user} />
       )}

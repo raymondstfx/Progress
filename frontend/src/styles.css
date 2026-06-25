@@ -197,6 +197,17 @@ button, input, select, textarea { font: inherit; }
 .stack { display: grid; gap: 18px; }
 .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px; }
 .section-head { margin: 30px 0 14px; }
+.section-title-row {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.section-title-row h2,
+.section-title-row h3 {
+  margin: 0;
+}
 
 .stat {
   padding: 20px;
@@ -288,6 +299,47 @@ button, input, select, textarea { font: inherit; }
   background: #fff8e1;
   border-radius: 8px;
   padding: 12px 14px;
+}
+
+.detail-layout {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.source-card {
+  background: var(--surface);
+  border: 1px solid #e1e2e7;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  position: sticky;
+  top: 104px;
+}
+
+.source {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.source dt {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.source dd {
+  margin: 0 0 8px;
+}
+
+.chunk-controls {
+  display: grid;
+  gap: 10px;
 }
 
 .panel {
@@ -383,8 +435,13 @@ th {
 
   .grid-2,
   .grid-3,
+  .detail-layout,
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .source-card {
+    position: static;
   }
 
   .action-row .btn {
