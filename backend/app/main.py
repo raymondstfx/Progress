@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api import auth, documents, resources, stats
+from backend.app.api import auth, documents, resources, search, stats
 from backend.app.core.config import get_settings
 from backend.app.db.database import Base, SessionLocal, engine
 from backend.app.db.seed import seed_database
@@ -21,6 +21,7 @@ app.include_router(auth.router)
 app.include_router(resources.router)
 app.include_router(documents.router)
 app.include_router(stats.router)
+app.include_router(search.router)
 
 
 @app.on_event("startup")
