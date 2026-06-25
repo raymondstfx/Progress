@@ -3,6 +3,7 @@ import type { User } from "./types/api";
 import { getStoredUser } from "./services/api";
 import { currentPath, navigate } from "./services/navigation";
 import { AdminPage } from "./pages/AdminPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
 
 export default function App() {
@@ -21,6 +22,14 @@ export default function App() {
   }, [user, path]);
 
   if (!user) return <LoginPage onLogin={setUser} />;
+
+  if (path === "/library") {
+    return (
+      <main className="main">
+        <LibraryPage />
+      </main>
+    );
+  }
 
   return (
     <main className="main admin-shell">
