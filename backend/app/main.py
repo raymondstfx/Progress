@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api import auth, documents, resources
+from backend.app.api import auth, documents, resources, stats
 from backend.app.core.config import get_settings
 from backend.app.db.database import Base, SessionLocal, engine
 from backend.app.db.seed import seed_database
@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(resources.router)
 app.include_router(documents.router)
+app.include_router(stats.router)
 
 
 @app.on_event("startup")
