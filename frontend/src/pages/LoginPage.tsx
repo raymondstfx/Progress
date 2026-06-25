@@ -18,7 +18,7 @@ export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
       const data = await api.login({ username, password });
       setSession(data.token, data.user);
       onLogin(data.user);
-      navigate("/admin");
+      navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

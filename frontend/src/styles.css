@@ -52,6 +52,108 @@ button, input, select, textarea { font: inherit; }
   min-height: 100vh;
 }
 
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--background);
+  border-bottom: 1px solid #e1e2e7;
+}
+
+.topbar-inner {
+  max-width: 1280px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.brand-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.topnav {
+  display: flex;
+  gap: 16px;
+}
+
+.topnav button {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 0;
+}
+
+.topnav button.active,
+.topnav button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: calc(100vh - 76px);
+}
+
+.sidebar {
+  background: var(--surface-soft);
+  border-right: 1px solid #e1e2e7;
+  padding: 28px 14px;
+}
+
+.sidebar h2 {
+  color: var(--primary);
+  font-size: 24px;
+  margin: 0 12px 24px;
+}
+
+.sidenav {
+  display: grid;
+  gap: 6px;
+}
+
+.sidenav button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #4f4633;
+  cursor: pointer;
+  display: flex;
+  font-weight: 700;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.sidenav button.active,
+.sidenav button:hover {
+  background: var(--secondary-soft);
+  color: #001b3e;
+}
+
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -214,6 +316,22 @@ th {
 
   .page-head {
     display: block;
+  }
+
+  .topbar-inner {
+    padding: 0 18px;
+  }
+
+  .topnav {
+    display: none;
+  }
+
+  .shell {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
   }
 
   .grid-2 {
