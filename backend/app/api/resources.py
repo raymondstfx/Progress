@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
@@ -81,6 +81,8 @@ def list_resources(
     sector: str | None = None,
     policy_challenge: str | None = None,
     resource_type: str | None = None,
+    limit: int = Query(100, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(Resource)
@@ -94,7 +96,8 @@ def list_resources(
         query = query.filter(Resource.policy_challenge.ilike(f"%{policy_challenge}%"))
     if resource_type:
         query = query.filter(Resource.resource_type == resource_type)
-    return [resource_list_out(resource) for resource in query.order_by(Resource.created_at.desc()).all()]
+    resources = query.order_by(Resource.created_at.desc()).offset(offset).limit(limit).all()
+    return [resource_list_out(resource) for resource in resources]
 
 
 @router.get("/{resource_id}", response_model=ResourceOut)
