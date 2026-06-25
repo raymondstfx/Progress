@@ -1,66 +1,64 @@
+import { useEffect, useState } from "react";
 import { EvidencePreview } from "../components/EvidencePreview";
 import { Badge, Button, MaterialIcon, PageHead } from "../components/ui";
+import { api } from "../services/api";
 import { navigate } from "../services/navigation";
-import type { User } from "../types/api";
+import type { DocumentRecord, ResourceDetail, User } from "../types/api";
 
 interface ResourceDetailPageProps {
   resourceId: string;
   user: User;
 }
 
-interface StaticDetail {
-  title: string;
-  summary: string;
-  resourceType: string;
-  policyArea: string;
-  jurisdiction: string;
-  sector: string;
-  challenge: string;
-  source: string;
-  citation: string;
-  status: string;
-  evidence: string[];
+function documentTone(status: string): "default" | "teal" | "danger" {
+  if (status === "completed") return "teal";
+  if (status === "failed") return "danger";
+  return "default";
 }
 
-const staticDetail: StaticDetail = {
-  title: "Central-West Orana Renewable Energy Zone",
-  summary:
-    "A static Sprint 1 preview for the resource detail layout. The final page will load metadata, documents, and indexed chunks from the backend resource detail API.",
-  resourceType: "Case study",
-  policyArea: "Energy transition",
-  jurisdiction: "NSW, Australia",
-  sector: "Energy",
-  challenge: "Community benefit sharing",
-  source: "Policy case study",
-  citation: "NSW Department of Planning and Environment (2024). Central-West Orana REZ Implementation Update.",
-  status: "Detail API integration pending",
-  evidence: [
-    "Coordinated transmission planning helps align new renewable generation, access rights, and local infrastructure delivery.",
-    "Community benefit schemes are highlighted as a practical mechanism for responding to landholder and regional concerns.",
-  ],
-};
-
-function detailForRoute(resourceId: string): StaticDetail | null {
-  if (!resourceId || resourceId === "not-a-real-id") return null;
-  if (resourceId === "rez-nsw-2024") return staticDetail;
-  return {
-    ...staticDetail,
-    title: `Static detail preview for ${resourceId}`,
-    summary:
-      "This placeholder confirms the detail route and layout before Task 17 connects the page to live resource metadata.",
-    citation: "Citation will be loaded from the resource detail API in Task 17.",
-    status: "Static preview",
-  };
+function latestDocument(documents: DocumentRecord[]): DocumentRecord | null {
+  return documents[0] || null;
 }
 
 export function ResourceDetailPage({ resourceId, user }: ResourceDetailPageProps) {
-  const detail = detailForRoute(resourceId);
+  const [resource, setResource] = useState<ResourceDetail | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showAllChunks, setShowAllChunks] = useState(false);
+  const [reprocessingId, setReprocessingId] = useState("");
 
-  if (!detail) {
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    setShowAllChunks(false);
+    api
+      .resource(resourceId)
+      .then(setResource)
+      .catch((reason) => setError(reason instanceof Error ? reason.message : "Resource could not be loaded."))
+      .finally(() => setLoading(false));
+  }, [resourceId]);
+
+  async function reprocess(documentId: string) {
+    setReprocessingId(documentId);
+    setError("");
+    try {
+      setResource(await api.reprocess(documentId));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Document reprocess failed.");
+    } finally {
+      setReprocessingId("");
+    }
+  }
+
+  if (loading) {
+    return <div className="notice">Loading resource detail...</div>;
+  }
+
+  if (error || !resource) {
     return (
       <>
-        <PageHead eyebrow="Resource detail" title="Resource not available yet">
-          This static shell could not find a preview for this route. Real missing-resource handling will be connected in Task 17.
+        <PageHead eyebrow="Resource detail" title="Resource not available">
+          {error || "The selected resource could not be loaded."}
         </PageHead>
         <div className="notice">Resource ID: {resourceId || "missing"}</div>
         <div className="action-row" style={{ marginTop: 18 }}>
@@ -73,21 +71,13 @@ export function ResourceDetailPage({ resourceId, user }: ResourceDetailPageProps
     );
   }
 
+  const visibleChunks = showAllChunks ? resource.chunks : resource.chunks.slice(0, 3);
+  const primaryDocument = latestDocument(resource.documents);
+
   return (
     <>
-      <PageHead
-        eyebrow="Resource detail"
-        title={detail.title}
-        action={
-          user.role === "admin" ? (
-            <Button variant="outline" type="button">
-              <MaterialIcon name="edit" />
-              Edit metadata
-            </Button>
-          ) : null
-        }
-      >
-        {detail.summary}
+      <PageHead eyebrow="Resource detail" title={resource.title}>
+        {resource.summary || "No summary is available yet."}
       </PageHead>
 
       <section className="detail-layout">
@@ -95,60 +85,100 @@ export function ResourceDetailPage({ resourceId, user }: ResourceDetailPageProps
           <article className="card result-card">
             <div className="section-title-row">
               <h2>Metadata</h2>
-              <Badge tone="teal">{detail.status}</Badge>
+              {primaryDocument ? (
+                <Badge tone={documentTone(primaryDocument.parse_status)}>{primaryDocument.parse_status}</Badge>
+              ) : (
+                <Badge>No uploaded document</Badge>
+              )}
             </div>
             <div className="meta">
-              <Badge tone="gold">{detail.policyArea}</Badge>
-              <Badge>{detail.jurisdiction}</Badge>
-              <Badge>{detail.resourceType}</Badge>
-              <Badge>{detail.sector}</Badge>
-              <Badge>{detail.challenge}</Badge>
+              <Badge tone="gold">{resource.policy_area || "Unspecified"}</Badge>
+              <Badge>{resource.jurisdiction || "Unknown jurisdiction"}</Badge>
+              <Badge>{resource.resource_type || "resource"}</Badge>
+              <Badge>{resource.sector || "Unspecified sector"}</Badge>
+              <Badge>{resource.policy_challenge || "No challenge tagged"}</Badge>
             </div>
           </article>
 
           <article className="card result-card">
             <div className="section-title-row">
               <h2>Evidence chunks</h2>
-              <span className="muted-small">Static shell preview</span>
+              <span className="muted-small">Showing {visibleChunks.length} of {resource.chunks.length}</span>
             </div>
-            <div className="stack">
-              {detail.evidence.map((text, index) => (
-                <EvidencePreview
-                  key={text}
-                  label={`Evidence chunk ${index + 1}`}
-                  meta="Indexed excerpt placeholder"
-                  text={text}
-                />
-              ))}
-            </div>
+            {visibleChunks.length ? (
+              <div className="stack">
+                {visibleChunks.map((chunk) => (
+                  <EvidencePreview
+                    key={chunk.id}
+                    label={`Evidence chunk ${chunk.chunk_index}`}
+                    meta={`p. ${chunk.page_start || "n/a"}${chunk.page_end && chunk.page_end !== chunk.page_start ? `-${chunk.page_end}` : ""} | ${chunk.token_count || 0} tokens`}
+                    text={chunk.text}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="notice">No evidence chunks are available for this resource yet.</div>
+            )}
+            {resource.chunks.length > 3 ? (
+              <div className="chunk-controls">
+                <Button variant="outline" type="button" onClick={() => setShowAllChunks((current) => !current)}>
+                  <MaterialIcon name={showAllChunks ? "expand_less" : "expand_more"} />
+                  {showAllChunks ? "Show fewer chunks" : `Show all ${resource.chunks.length} chunks`}
+                </Button>
+              </div>
+            ) : null}
           </article>
         </div>
 
         <aside className="source-card">
           <div className="section-title-row">
             <h2>Source</h2>
-            <Badge>{resourceId}</Badge>
+            <Badge>{resource.id}</Badge>
           </div>
           <dl className="source">
             <dt>Source type</dt>
-            <dd>{detail.source}</dd>
+            <dd>{resource.source_type || resource.source || "Unknown"}</dd>
             <dt>Citation</dt>
-            <dd>{detail.citation}</dd>
+            <dd>{resource.citation || resource.source || "No citation available."}</dd>
             <dt>Document status</dt>
-            <dd>{detail.status}</dd>
+            <dd>{primaryDocument?.parse_status || resource.document_status || "No uploaded document"}</dd>
           </dl>
-          <div className="chunk-controls">
-            <Button variant="outline" type="button" disabled>
-              <MaterialIcon name="download" />
-              Download pending
-            </Button>
-            {user.role === "admin" ? (
-              <Button variant="ghost" type="button" disabled>
-                <MaterialIcon name="sync" />
-                Reprocess pending
-              </Button>
-            ) : null}
-          </div>
+
+          {resource.documents.length ? (
+            <div className="stack">
+              {resource.documents.map((document) => (
+                <article key={document.id} className="panel">
+                  <div className="meta">
+                    <Badge tone={documentTone(document.parse_status)}>{document.parse_status}</Badge>
+                    <Badge>{Math.max(1, Math.round(document.file_size / 1024))} KB</Badge>
+                  </div>
+                  <p>
+                    <strong>{document.original_filename}</strong>
+                  </p>
+                  {document.parse_error ? <p className="notice">{document.parse_error}</p> : null}
+                  <div className="chunk-controls">
+                    <a className="btn btn-outline" href={api.fileUrl(document.id)}>
+                      <MaterialIcon name="download" />
+                      Download original
+                    </a>
+                    {user.role === "admin" ? (
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        disabled={reprocessingId === document.id}
+                        onClick={() => reprocess(document.id)}
+                      >
+                        <MaterialIcon name="sync" />
+                        {reprocessingId === document.id ? "Reprocessing..." : "Reprocess document"}
+                      </Button>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="notice">No uploaded source document is attached to this resource.</div>
+          )}
         </aside>
       </section>
     </>
