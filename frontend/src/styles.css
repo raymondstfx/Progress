@@ -193,7 +193,21 @@ button, input, select, textarea { font: inherit; }
 }
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .stack { display: grid; gap: 18px; }
+.stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px; }
+.section-head { margin: 30px 0 14px; }
+
+.stat {
+  padding: 20px;
+}
+
+.stat strong {
+  display: block;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 30px;
+  margin-top: 4px;
+}
 
 .field, select, textarea {
   width: 100%;
@@ -334,7 +348,9 @@ th {
     display: none;
   }
 
-  .grid-2 {
+  .grid-2,
+  .grid-3,
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 

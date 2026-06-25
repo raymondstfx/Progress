@@ -4,6 +4,7 @@ import { getStoredUser } from "./services/api";
 import { currentPath, navigate } from "./services/navigation";
 import { AppShell } from "./layout/AppShell";
 import { AdminPage } from "./pages/AdminPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
 
@@ -31,10 +32,7 @@ export default function App() {
       ) : path === "/admin" && user.role === "admin" ? (
         <AdminPage />
       ) : (
-        <section className="card result-card stack">
-          <h1 className="page-title">Dashboard</h1>
-          <p className="lead">Dashboard shell is being prepared.</p>
-        </section>
+        <DashboardPage user={user} />
       )}
     </AppShell>
   );
