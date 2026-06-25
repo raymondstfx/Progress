@@ -290,6 +290,39 @@ button, input, select, textarea { font: inherit; }
   padding: 12px 14px;
 }
 
+.panel {
+  background: var(--surface);
+  border: 1px solid #e1e2e7;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.evidence-preview {
+  display: grid;
+  gap: 12px;
+}
+
+.evidence-preview h3,
+.evidence-preview p {
+  margin: 0;
+}
+
+.evidence-meta {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.evidence-toggle {
+  justify-self: start;
+  background: transparent;
+  border: 0;
+  color: var(--secondary);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0;
+}
+
 .ingestion-notice {
   font-weight: 700;
 }
