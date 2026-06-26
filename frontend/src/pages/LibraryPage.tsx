@@ -1,25 +1,37 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../services/api";
-import type { ResourceListItem, SearchFilters } from "../types/api";
+import type { ResourceListItem, SearchFilters, SearchResult } from "../types/api";
 import { Button, MaterialIcon, PageHead, Select, TextInput } from "../components/ui";
-import { ResourceList } from "../components/ResourceCard";
+import { ResourceCard, ResourceList } from "../components/ResourceCard";
 
 export function LibraryPage() {
+  const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilters>({});
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [resources, setResources] = useState<ResourceListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const searchMode = Boolean(query.trim());
+  const resultCount = searchMode ? results.length : resources.length;
 
-  async function loadResources(nextFilters = filters) {
+  async function loadLibrary(nextFilters = filters, nextQuery = query) {
     setLoading(true);
     setError("");
     try {
-      const items = await api.resources(nextFilters);
-      setResources(items);
+      if (nextQuery.trim()) {
+        const data = await api.search({ query: nextQuery.trim(), filters: nextFilters, top_k: 10 });
+        setResults(data.results);
+        setResources(data.resources);
+      } else {
+        const items = await api.resources(nextFilters);
+        setResources(items);
+        setResults([]);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load resources.");
+      setError(err instanceof Error ? err.message : "Unable to load library results.");
       setResources([]);
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -27,36 +39,47 @@ export function LibraryPage() {
 
   function applyFilters(event: FormEvent) {
     event.preventDefault();
-    void loadResources();
+    void loadLibrary();
   }
 
   function clearFilters() {
     const emptyFilters: SearchFilters = {};
     setFilters(emptyFilters);
-    void loadResources(emptyFilters);
+    void loadLibrary(emptyFilters);
   }
 
   useEffect(() => {
-    void loadResources();
+    void loadLibrary();
   }, []);
 
   return (
     <>
       <PageHead
         eyebrow="Policy Library"
-        title="Browse policy resources"
+        title="Search policy resources"
         action={
-          <Button variant="outline" onClick={() => void loadResources()} disabled={loading}>
+          <Button variant="outline" onClick={() => void loadLibrary()} disabled={loading}>
             <MaterialIcon name="refresh" />
             Refresh
           </Button>
         }
       >
-        Review imported and uploaded resources from the repository.
+        Search seeded and uploaded resources, or leave the query empty to browse the repository.
       </PageHead>
 
       <section className="card result-card stack" style={{ marginBottom: 24 }}>
         <form onSubmit={applyFilters} className="stack">
+          <div className="searchbar">
+            <MaterialIcon name="search" style={{ color: "var(--primary)" }} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Try: Renewable Energy Zone"
+            />
+            <Button type="submit" disabled={loading}>
+              {query.trim() ? "Search" : "Browse"}
+            </Button>
+          </div>
           <div className="grid-2">
             <TextInput
               placeholder="Policy area"
@@ -98,19 +121,42 @@ export function LibraryPage() {
               Clear filters
             </Button>
             <span className="chip">{activeFilterCount} active filters</span>
+            <span className="chip">{searchMode ? "Search mode" : "Browse mode"}</span>
           </div>
         </form>
       </section>
 
       <section className="card result-card stack">
         <div className="action-row" style={{ justifyContent: "space-between" }}>
-          <strong>{resources.length} resources</strong>
-          <span className="muted-small">Browse mode</span>
+          <strong>{resultCount} results</strong>
+          <span className="muted-small">{searchMode ? `Search: ${query.trim()}` : "Browse mode"}</span>
         </div>
 
-        {loading && <div className="notice">Loading policy resources...</div>}
+        {loading && <div className="notice">Loading library results...</div>}
         {!loading && error && <div className="notice ingestion-notice">{error}</div>}
-        {!loading && !error && <ResourceList resources={resources} />}
+        {!loading && !error && searchMode && !results.length && (
+          <div className="notice">No search results found. Try a broader query or clear filters.</div>
+        )}
+        {!loading && !error && searchMode && results.length > 0 && (
+          <div className="stack">
+            {results.map((item) => (
+              <ResourceCard
+                key={item.resource_id}
+                resource={{
+                  id: item.resource_id,
+                  title: item.title,
+                  summary: item.summary,
+                  policy_area: item.policy_area,
+                  jurisdiction: item.jurisdiction,
+                  resource_type: item.resource_type,
+                }}
+                score={item.score}
+                matchedChunks={item.matched_chunks}
+              />
+            ))}
+          </div>
+        )}
+        {!loading && !error && !searchMode && <ResourceList resources={resources} />}
       </section>
     </>
   );

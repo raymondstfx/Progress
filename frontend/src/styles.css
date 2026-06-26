@@ -292,6 +292,22 @@ button, input, select, textarea { font: inherit; }
   align-items: center;
 }
 
+.searchbar {
+  align-items: center;
+  border: 1px solid #d8dadf;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 10px 12px;
+}
+
+.searchbar input {
+  border: 0;
+  outline: 0;
+  width: 100%;
+}
+
 .muted-small { color: var(--muted); font-size: 14px; }
 
 .notice {
@@ -446,5 +462,9 @@ th {
 
   .action-row .btn {
     width: 100%;
+  }
+
+  .searchbar {
+    grid-template-columns: 1fr;
   }
 }
