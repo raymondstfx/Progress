@@ -6,7 +6,7 @@ import { classNames, MaterialIcon } from "../components/ui";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "dashboard" },
-  { path: "/library", label: "Library", icon: "search" },
+  { path: "/library", label: "Search resources", icon: "search" },
   { path: "/admin", label: "Admin", icon: "admin_panel_settings", admin: true },
 ];
 
@@ -27,7 +27,7 @@ export function AppShell({ user, onLogout, children }: { user: User; onLogout: (
           <button onClick={() => navigate("/dashboard")} className="brand-wrap">
             <MaterialIcon name="policy" style={{ color: "var(--primary)" }} />
             <div>
-              <div className="brand">Policy in Action Library</div>
+              <div className="brand">PPI Policy in Action Library</div>
               <div className="brand-subtitle">UNSW Knowledge Hub</div>
             </div>
           </button>

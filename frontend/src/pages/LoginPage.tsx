@@ -31,7 +31,7 @@ export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
       <section className="login-grid">
         <div>
           <Badge tone="gold">PolicyAI RAG MVP</Badge>
-          <h1 className="page-title" style={{ marginTop: 28 }}>Policy in Action Library</h1>
+          <h1 className="page-title" style={{ marginTop: 28 }}>PPI Policy in Action Library</h1>
           <p className="lead">A role-based policy evidence platform for repository search, document ingestion, semantic retrieval, and cited AI synthesis.</p>
         </div>
         <form onSubmit={submit} className="card login-form">

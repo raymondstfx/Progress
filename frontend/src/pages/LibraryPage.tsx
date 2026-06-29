@@ -56,7 +56,7 @@ export function LibraryPage() {
     <>
       <PageHead
         eyebrow="Policy Library"
-        title="Search policy resources"
+        title="Search resource database"
         action={
           <Button variant="outline" onClick={() => void loadLibrary()} disabled={loading}>
             <MaterialIcon name="refresh" />
