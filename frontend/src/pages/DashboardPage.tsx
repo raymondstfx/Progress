@@ -43,7 +43,7 @@ export function DashboardPage({ user }: { user: User }) {
       {loading && <div className="notice" style={{ marginBottom: 24 }}>Loading dashboard statistics...</div>}
       {error && <div className="notice ingestion-notice" style={{ marginBottom: 24 }}>{error}</div>}
 
-      <section className="grid-2">
+      <section className="grid-2" style={{ alignItems: "start" }}>
         <div>
           <div className="page-head section-head">
             <h2 style={{ margin: 0 }}>Recent resources</h2>
@@ -51,20 +51,20 @@ export function DashboardPage({ user }: { user: User }) {
           <ResourceList resources={stats?.recent_resources || []} />
         </div>
 
-        <div className="card result-card stack">
+        <div className="card result-card">
           <h2 style={{ margin: 0 }}>Popular policy areas</h2>
-          <div className="meta">
+          <div className="meta" style={{ marginTop: 14, gap: 8 }}>
             {(stats?.popular_policy_areas || []).length ? (
               stats?.popular_policy_areas.map((area) => <Badge key={area} tone="gold">{area}</Badge>)
             ) : (
               <Badge tone="gold">No policy areas yet</Badge>
             )}
           </div>
-          <p className="muted-small">
+          <p className="muted-small" style={{ margin: "16px 0 0" }}>
             Policy-area summaries are refreshed from repository metadata.
           </p>
           {isAdmin && (
-            <div className="action-row">
+            <div className="action-row" style={{ marginTop: 18 }}>
               <Button onClick={() => navigate("/admin")}>
                 <MaterialIcon name="upload_file" />
                 Upload document

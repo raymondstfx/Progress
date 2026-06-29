@@ -4,6 +4,8 @@ import { api } from "../services/api";
 import { navigate } from "../services/navigation";
 import { Button, Field, MaterialIcon, PageHead, Textarea, TextInput } from "../components/ui";
 
+type UploadStatus = "idle" | "selected" | "uploading" | "uploaded" | "failed";
+
 function titleFromFileName(fileName: string): string {
   return fileName
     .replace(/\.[^.]+$/, "")
@@ -18,6 +20,8 @@ export function AdminPage() {
   const [resources, setResources] = useState<ResourceListItem[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [selectedFileName, setSelectedFileName] = useState("");
   const [form, setForm] = useState<Record<string, string>>({
     policy_area: "Cyber Security",
@@ -27,8 +31,20 @@ export function AdminPage() {
     stakeholder_type: "Government agencies, businesses, critical infrastructure operators, and community organisations",
   });
 
-  const refresh = () => api.resources().then(setResources);
-  useEffect(() => { refresh(); }, []);
+  async function refresh() {
+    setRefreshing(true);
+    try {
+      const items = await api.resources();
+      setResources(items);
+      return items;
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    void refresh().catch((err) => setMessage(err instanceof Error ? err.message : "Unable to load repository activity."));
+  }, []);
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,16 +52,21 @@ export function AdminPage() {
     const file = fileInput.files?.[0];
     if (!file) return setMessage("Choose a TXT, PDF, or DOCX file first.");
     setBusy(true);
+    setUploadStatus("uploading");
+    setMessage(`Uploading and indexing ${file.name}...`);
     const formData = new FormData();
     formData.append("file", file);
     Object.entries(form).forEach(([key, value]) => formData.append(key, value || ""));
     try {
       const saved = await api.upload(formData);
-      setMessage(`Uploaded and indexed ${saved.chunks.length} chunks.`);
+      setResources((current) => [saved, ...current.filter((item) => item.id !== saved.id)]);
+      await refresh();
+      setMessage(`Uploaded "${saved.title}" and indexed ${saved.chunks.length} chunks. It is listed in Repository Activity below.`);
+      setUploadStatus("uploaded");
       fileInput.value = "";
       setSelectedFileName("");
-      refresh();
     } catch (err) {
+      setUploadStatus("failed");
       setMessage(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
@@ -55,7 +76,7 @@ export function AdminPage() {
   async function remove(id: string) {
     if (!confirm("Delete this resource, chunks, embeddings, citations, and uploaded files?")) return;
     await api.deleteResource(id);
-    refresh();
+    await refresh();
   }
 
   return (
@@ -87,6 +108,7 @@ export function AdminPage() {
                       onChange={(event) => {
                         const fileName = event.target.files?.[0]?.name || "";
                         setSelectedFileName(fileName);
+                        setUploadStatus(fileName ? "selected" : "idle");
                         if (fileName && !form.title) setForm({ ...form, title: titleFromFileName(fileName) });
                         setMessage("");
                       }}
@@ -95,7 +117,10 @@ export function AdminPage() {
                   <p className="muted-small">Supported: TXT, PDF, DOCX.</p>
                 </div>
                 <div className="notice ingestion-notice" style={{ marginTop: 16 }}>
-                  {message || (selectedFileName ? `Ready to upload: ${selectedFileName}` : "Choose a file, complete the metadata, then press Upload file and index.")}
+                  {message ||
+                    (uploadStatus === "selected" && selectedFileName
+                      ? `Ready to upload: ${selectedFileName}`
+                      : "Choose a file, complete the metadata, then press Upload file and index.")}
                 </div>
               </div>
               <div className="card result-card">
@@ -117,21 +142,37 @@ export function AdminPage() {
               </div>
             </section>
           </form>
-          <RepositoryTable resources={resources} remove={remove} />
+          <RepositoryTable resources={resources} remove={remove} refresh={refresh} refreshing={refreshing} />
         </>
       ) : (
-        <RepositoryTable resources={resources} remove={remove} />
+        <RepositoryTable resources={resources} remove={remove} refresh={refresh} refreshing={refreshing} />
       )}
     </>
   );
 }
 
-function RepositoryTable({ resources, remove }: { resources: ResourceListItem[]; remove: (id: string) => void }) {
+function RepositoryTable({
+  resources,
+  remove,
+  refresh,
+  refreshing,
+}: {
+  resources: ResourceListItem[];
+  remove: (id: string) => void;
+  refresh: () => Promise<ResourceListItem[]>;
+  refreshing: boolean;
+}) {
   return (
     <section className="card">
       <div className="page-head" style={{ padding: "20px 22px 0", marginBottom: 14 }}>
         <h2 style={{ margin: 0 }}>Repository Activity</h2>
-        <span className="chip">imported + manually uploaded resources</span>
+        <div className="action-row">
+          <span className="chip">imported + manually uploaded resources</span>
+          <Button type="button" variant="outline" onClick={() => void refresh()} disabled={refreshing}>
+            <MaterialIcon name="refresh" />
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </Button>
+        </div>
       </div>
       <div className="table-wrap">
         <table>
